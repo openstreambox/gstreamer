@@ -195,7 +195,7 @@ gst_tensor_set_simple (GstTensor * tensor, GQuark id,
 
 /**
  * gst_tensor_free:
- * @tensor: (in) (transfer full): pointer to tensor to free
+ * @tensor: (in) (transfer full) (nullable): pointer to tensor to free
  *
  * Free tensor
  *
@@ -204,7 +204,7 @@ gst_tensor_set_simple (GstTensor * tensor, GQuark id,
 void
 gst_tensor_free (GstTensor * tensor)
 {
-  if (tensor->data != NULL) {
+  if (tensor != NULL && tensor->data) {
     gst_buffer_unref (tensor->data);
   }
   g_free (tensor);
