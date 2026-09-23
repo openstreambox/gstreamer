@@ -3343,7 +3343,7 @@ Otherwise FALSE will be returned.</doc>
           <type name="none" c:type="void"/>
         </return-value>
         <parameters>
-          <instance-parameter name="tensor" transfer-ownership="full">
+          <instance-parameter name="tensor" transfer-ownership="full" nullable="1" allow-none="1">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gsttensor.c">pointer to tensor to free</doc>
             <type name="Tensor" c:type="GstTensor*"/>
           </instance-parameter>
@@ -4552,6 +4552,135 @@ Get the opaque id identifying the relatable type</doc>
         </return-value>
       </function>
     </record>
+    <enumeration name="VideoError" version="1.30" c:type="GstAnalyticsVideoError" glib:error-domain="gst-analytics-video-error-quark">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">Error codes for the %GST_ANALYTICS_VIDEO_ERROR domain.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <member name="unsupported_dims" value="0" c:identifier="GST_ANALYTICS_VIDEO_ERROR_UNSUPPORTED_DIMS">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">the tensor dims can't be
+   interpreted as a video frame</doc>
+      </member>
+      <member name="unsupported_format" value="1" c:identifier="GST_ANALYTICS_VIDEO_ERROR_UNSUPPORTED_FORMAT">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">the video format can't be
+   used for the tensor</doc>
+      </member>
+      <member name="caps_mismatch" value="2" c:identifier="GST_ANALYTICS_VIDEO_ERROR_CAPS_MISMATCH">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">the caps disagree with the tensor
+   dims</doc>
+      </member>
+    </enumeration>
+    <record name="VideoTensorLayout" c:type="GstAnalyticsVideoTensorLayout" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">Describes how a tensor's dimensions map onto a video frame's layout.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <field name="format" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">base #GstVideoFormat declared or guessed for the tensor</doc>
+        <type name="GstVideo.VideoFormat" c:type="GstVideoFormat"/>
+      </field>
+      <field name="width" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">tensor width, or 0 if not applicable</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="height" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">tensor height, or 0 if not applicable</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="channels" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">number of channels</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="planar" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">%TRUE when video format is planar</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </field>
+      <field name="batch_dim" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">index of the batch dimension in the tensor's dims array, or -1
+   when batch is implicit.</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="channels_dim" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">index of the channels dimension, or -1 when the tensor has
+   none</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="height_dim" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">index of the height dimension</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="width_dim" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h">index of the width dimension</doc>
+        <type name="gint" c:type="gint"/>
+      </field>
+      <field name="_gst_reserved" readable="0" private="1">
+        <array zero-terminated="0" fixed-size="4">
+          <type name="gpointer" c:type="gpointer"/>
+        </array>
+      </field>
+      <function name="from_caps" c:identifier="gst_analytics_video_tensor_layout_from_caps" version="1.30" throws="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Guesses a #GstAnalyticsVideoTensorLayout from a video format already
+declared in @s, validating that @dims agrees with the declared format's
+channel count and resolution.
+
+Only formats whose memory layout maps directly onto a tensor are supported:
+no chroma subsampling, and either a single plane holding all components with
+no padding between pixels, or one plane per component.</doc>
+        <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE on success, or when @s declares no format at all, otherwise
+   %FALSE with @error set if @s declares an unknown or unsupported format, or
+   one that disagrees with @dims</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <parameter name="dims" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's dimensions</doc>
+            <array length="1" zero-terminated="0" c:type="const gsize*">
+              <type name="gsize" c:type="gsize"/>
+            </array>
+          </parameter>
+          <parameter name="dims_count" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">number of entries in @dims</doc>
+            <type name="gsize" c:type="gsize"/>
+          </parameter>
+          <parameter name="s" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the `video/x-raw` #GstStructure declaring the tensor's format.</doc>
+            <type name="Gst.Structure" c:type="const GstStructure*"/>
+          </parameter>
+          <parameter name="layout" direction="out" caller-allocates="1" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">filled in with the guessed layout,
+   `layout-&gt;format` is left as %GST_VIDEO_FORMAT_UNKNOWN when @s
+   declares no `format` field.</doc>
+            <type name="VideoTensorLayout" c:type="GstAnalyticsVideoTensorLayout*"/>
+          </parameter>
+        </parameters>
+      </function>
+      <function name="from_dims" c:identifier="gst_analytics_video_tensor_layout_from_dims" version="1.30" throws="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Guesses a #GstAnalyticsVideoTensorLayout purely from a tensor's shape
+(2 to 4 dimensions), without any prior knowledge of its intended video
+format. On success use gst_analytics_video_format_guess() afterward to map
+to a float32 variant when the tensor's data type calls for one.</doc>
+        <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE on success, %FALSE with @error set if @dims_count is out
+   of range or the dims can't be interpreted as a video layout</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <parameter name="dims" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's dimensions</doc>
+            <array length="1" zero-terminated="0" c:type="const gsize*">
+              <type name="gsize" c:type="gsize"/>
+            </array>
+          </parameter>
+          <parameter name="dims_count" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">number of entries in @dims</doc>
+            <type name="gsize" c:type="gsize"/>
+          </parameter>
+          <parameter name="layout" direction="out" caller-allocates="1" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">filled in with the guessed layout</doc>
+            <type name="VideoTensorLayout" c:type="GstAnalyticsVideoTensorLayout*"/>
+          </parameter>
+        </parameters>
+      </function>
+    </record>
     <function name="batch_meta_api_get_type" c:identifier="gst_analytics_batch_meta_api_get_type" version="1.28" introspectable="0">
       <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsbatchmeta.h"/>
       <return-value transfer-ownership="none">
@@ -4829,6 +4958,96 @@ regions overlap.</doc>
         <parameter name="bb2_h" transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalytics_image_util.c">Bounding box 2, height</doc>
           <type name="gint" c:type="gint"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="inference_caps_has_tensor_group" c:identifier="gst_analytics_inference_caps_has_tensor_group" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">Checks whether any structure in @caps declares a tensor group named
+@group_id in its `tensors` field.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">%TRUE if @caps declares a tensor group named @group_id, %FALSE
+   otherwise or if @group_id is %NULL</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+      <parameters>
+        <parameter name="caps" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">caps to check</doc>
+          <type name="Gst.Caps" c:type="const GstCaps*"/>
+        </parameter>
+        <parameter name="group_id" transfer-ownership="none" nullable="1" allow-none="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">tensor group id to look for</doc>
+          <type name="utf8" c:type="const gchar*"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="inference_transform_sink_caps" c:identifier="gst_analytics_inference_transform_sink_caps" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">Transforms @caps, the caps on the sink pad, into the caps for the src pad.
+
+Each structure of @caps, without its `tensors` field, is intersected with
+@restrictions. The tensor groups already declared in @caps are kept and the
+group named @group_id from @model_tensorgroups is added to them.
+
+A structure is dropped if @group_id is set and either @caps already declares
+a group with that id, which happens when the same model is chained twice, or
+@model_tensorgroups has no group with that id.
+
+If @caps is ANY, @restrictions is used in its place, so the result is
+@restrictions with the group named @group_id added. If both @caps and
+@restrictions are ANY, ANY is returned.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.h"/>
+      <return-value transfer-ownership="full">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">the src caps</doc>
+        <type name="Gst.Caps" c:type="GstCaps*"/>
+      </return-value>
+      <parameters>
+        <parameter name="caps" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">caps on the sink pad</doc>
+          <type name="Gst.Caps" c:type="GstCaps*"/>
+        </parameter>
+        <parameter name="restrictions" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">caps the model accepts as input, including
+   any caps features supported by the caller</doc>
+          <type name="Gst.Caps" c:type="GstCaps*"/>
+        </parameter>
+        <parameter name="model_tensorgroups" transfer-ownership="none" nullable="1" allow-none="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">the tensor groups the model
+   produces, keyed by group id, as found in the `tensors` field of the
+   caps describing the model output</doc>
+          <type name="Gst.Structure" c:type="const GstStructure*"/>
+        </parameter>
+        <parameter name="group_id" transfer-ownership="none" nullable="1" allow-none="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">id of the tensor group the model produces, as
+   declared in its model info, or %NULL if the model doesn't declare one
+   for its output</doc>
+          <type name="utf8" c:type="const gchar*"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="inference_transform_src_caps" c:identifier="gst_analytics_inference_transform_src_caps" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">Transforms @caps, the caps on the src pad, into the caps for the sink pad.
+
+The `tensors` field is removed from every structure of @caps, so the tensor
+groups downstream expects are not propagated upstream, then the result is
+intersected with @restrictions. This is the counterpart of
+gst_analytics_inference_transform_sink_caps(), which adds the tensor group
+back on the way down.
+
+If @caps is ANY, the result is @restrictions.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.h"/>
+      <return-value transfer-ownership="full">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">the sink caps</doc>
+        <type name="Gst.Caps" c:type="GstCaps*"/>
+      </return-value>
+      <parameters>
+        <parameter name="caps" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">caps on the src pad</doc>
+          <type name="Gst.Caps" c:type="GstCaps*"/>
+        </parameter>
+        <parameter name="restrictions" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsinferenceutils.c">caps the model accepts as input, including
+   any caps features supported by the caller</doc>
+          <type name="Gst.Caps" c:type="GstCaps*"/>
         </parameter>
       </parameters>
     </function>
@@ -5121,6 +5340,142 @@ fixed bit depth.</doc>
 Get the opaque id identifying the relatable type</doc>
         <type name="MtdType" c:type="GstAnalyticsMtdType"/>
       </return-value>
+    </function>
+    <function name="video_error_quark" c:identifier="gst_analytics_video_error_quark" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Error domain for gst_analytics_video_ functions.</doc>
+      <return-value transfer-ownership="none">
+        <type name="GLib.Quark" c:type="GQuark"/>
+      </return-value>
+    </function>
+    <function name="video_format_guess" c:identifier="gst_analytics_video_format_guess" version="1.30" throws="1">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Maps @base_format to the concrete #GstVideoFormat matching @data_type:
+unchanged for %GST_TENSOR_DATA_TYPE_UINT8, or the corresponding
+`*_F32LE`/`*_F32BE` variant for %GST_TENSOR_DATA_TYPE_FLOAT32.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE on success, %FALSE with @error set if @data_type has no
+   supported video format for @base_format</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+      <parameters>
+        <parameter name="base_format" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the format from gst_analytics_video_tensor_layout_from_dims()
+   or gst_analytics_video_tensor_layout_from_caps()</doc>
+          <type name="GstVideo.VideoFormat" c:type="GstVideoFormat"/>
+        </parameter>
+        <parameter name="data_type" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's actual element data type</doc>
+          <type name="TensorDataType" c:type="GstTensorDataType"/>
+        </parameter>
+        <parameter name="out_format" direction="out" caller-allocates="0" transfer-ownership="full">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the concrete #GstVideoFormat to negotiate</doc>
+          <type name="GstVideo.VideoFormat" c:type="GstVideoFormat*"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="video_scales_offsets_are_identity" c:identifier="gst_analytics_video_scales_offsets_are_identity" version="1.30">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Checks whether every channel's `(scale, offset)` pair is close enough
+to `(1.0, 0.0)` to be treated as a no-op normalization.
+
+A channel is an identity when both `|scale - 1.0|` and `|offset|` are at
+most an epsilon that depends on @data_type:
+
+- %GST_TENSOR_DATA_TYPE_UINT8: Epsilon is 0.001.
+- Any other data type: Epsilon is 1e-6.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE if normalization would be a no-op for all channels</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+      <parameters>
+        <parameter name="scales" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">per-channel scale factors</doc>
+          <array length="2" zero-terminated="0" c:type="const gdouble*">
+            <type name="gdouble" c:type="gdouble"/>
+          </array>
+        </parameter>
+        <parameter name="offsets" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">per-channel offsets</doc>
+          <array length="2" zero-terminated="0" c:type="const gdouble*">
+            <type name="gdouble" c:type="gdouble"/>
+          </array>
+        </parameter>
+        <parameter name="n_channels" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">number of channels</doc>
+          <type name="guint" c:type="guint"/>
+        </parameter>
+        <parameter name="data_type" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's data type, selecting the epsilon within which a
+   `(scale, offset)` pair is treated as `(1.0, 0.0)`</doc>
+          <type name="TensorDataType" c:type="GstTensorDataType"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="video_tensor_layout_from_caps" c:identifier="gst_analytics_video_tensor_layout_from_caps" moved-to="VideoTensorLayout.from_caps" version="1.30" throws="1">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Guesses a #GstAnalyticsVideoTensorLayout from a video format already
+declared in @s, validating that @dims agrees with the declared format's
+channel count and resolution.
+
+Only formats whose memory layout maps directly onto a tensor are supported:
+no chroma subsampling, and either a single plane holding all components with
+no padding between pixels, or one plane per component.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE on success, or when @s declares no format at all, otherwise
+   %FALSE with @error set if @s declares an unknown or unsupported format, or
+   one that disagrees with @dims</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+      <parameters>
+        <parameter name="dims" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's dimensions</doc>
+          <array length="1" zero-terminated="0" c:type="const gsize*">
+            <type name="gsize" c:type="gsize"/>
+          </array>
+        </parameter>
+        <parameter name="dims_count" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">number of entries in @dims</doc>
+          <type name="gsize" c:type="gsize"/>
+        </parameter>
+        <parameter name="s" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the `video/x-raw` #GstStructure declaring the tensor's format.</doc>
+          <type name="Gst.Structure" c:type="const GstStructure*"/>
+        </parameter>
+        <parameter name="layout" direction="out" caller-allocates="1" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">filled in with the guessed layout,
+   `layout-&gt;format` is left as %GST_VIDEO_FORMAT_UNKNOWN when @s
+   declares no `format` field.</doc>
+          <type name="VideoTensorLayout" c:type="GstAnalyticsVideoTensorLayout*"/>
+        </parameter>
+      </parameters>
+    </function>
+    <function name="video_tensor_layout_from_dims" c:identifier="gst_analytics_video_tensor_layout_from_dims" moved-to="VideoTensorLayout.from_dims" version="1.30" throws="1">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">Guesses a #GstAnalyticsVideoTensorLayout purely from a tensor's shape
+(2 to 4 dimensions), without any prior knowledge of its intended video
+format. On success use gst_analytics_video_format_guess() afterward to map
+to a float32 variant when the tensor's data type calls for one.</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">%TRUE on success, %FALSE with @error set if @dims_count is out
+   of range or the dims can't be interpreted as a video layout</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </return-value>
+      <parameters>
+        <parameter name="dims" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">the tensor's dimensions</doc>
+          <array length="1" zero-terminated="0" c:type="const gsize*">
+            <type name="gsize" c:type="gsize"/>
+          </array>
+        </parameter>
+        <parameter name="dims_count" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">number of entries in @dims</doc>
+          <type name="gsize" c:type="gsize"/>
+        </parameter>
+        <parameter name="layout" direction="out" caller-allocates="1" transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/analytics/gstanalyticsvideoutils.c">filled in with the guessed layout</doc>
+          <type name="VideoTensorLayout" c:type="GstAnalyticsVideoTensorLayout*"/>
+        </parameter>
+      </parameters>
     </function>
   </namespace>
 </repository>
