@@ -121,6 +121,10 @@ GST_VIDEO_API
 gboolean    gst_video_frame_copy_plane    (GstVideoFrame *dest, const GstVideoFrame *src,
                                            guint plane);
 
+GST_VIDEO_API
+gboolean    gst_video_frame_check_tightly_packed (const GstVideoFrame *frame,
+                                                  gboolean *tightly_packed);
+
 /* general info */
 #define GST_VIDEO_FRAME_FORMAT(f)         (GST_VIDEO_INFO_FORMAT(&(f)->info))
 #define GST_VIDEO_FRAME_WIDTH(f)          (GST_VIDEO_INFO_WIDTH(&(f)->info))

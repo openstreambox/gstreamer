@@ -439,3 +439,67 @@ gst_video_frame_copy (GstVideoFrame * dest, const GstVideoFrame * src)
 
   return TRUE;
 }
+
+/**
+ * gst_video_frame_check_tightly_packed:
+ * @frame: a mapped #GstVideoFrame
+ * @tightly_packed: (out): set to whether @frame is tightly packed on success
+ *
+ * Checks the plane strides and offsets of @frame for row padding and gaps
+ * between planes. A tightly packed frame has, for each plane, a stride that
+ * is exactly the component width in bytes, and each plane starts right after
+ * the previous one.
+ *
+ * Complex, tiled and paletted formats are unsupported, as their layout can't
+ * be described by a per-component pixel stride. In that case %FALSE is
+ * returned and @tightly_packed is left untouched.
+ *
+ * Returns: %TRUE if the layout could be checked, otherwise %FALSE.
+ *
+ * Since: 1.30
+ */
+gboolean
+gst_video_frame_check_tightly_packed (const GstVideoFrame * frame,
+    gboolean * tightly_packed)
+{
+  const GstVideoInfo *info;
+  guint n_planes, n_comps, planes_comp[GST_VIDEO_MAX_PLANES];
+  gsize expected_offset;
+  guint c, p;
+
+  g_return_val_if_fail (frame != NULL, FALSE);
+  g_return_val_if_fail (tightly_packed != NULL, FALSE);
+
+  info = &frame->info;
+
+  if (GST_VIDEO_FORMAT_INFO_IS_COMPLEX (info->finfo) ||
+      GST_VIDEO_FORMAT_INFO_IS_TILED (info->finfo) ||
+      GST_VIDEO_FORMAT_INFO_HAS_PALETTE (info->finfo))
+    return FALSE;
+
+  n_planes = GST_VIDEO_INFO_N_PLANES (info);
+  n_comps = GST_VIDEO_INFO_N_COMPONENTS (info);
+
+  for (c = 0; c < n_comps; c++)
+    planes_comp[GST_VIDEO_INFO_COMP_PLANE (info, c)] = c;
+
+  expected_offset = 0;
+  for (p = 0; p < n_planes; p++) {
+    gsize width_in_bytes;
+
+    c = planes_comp[p];
+    width_in_bytes = (gsize) GST_VIDEO_INFO_COMP_WIDTH (info, c) *
+        GST_VIDEO_INFO_COMP_PSTRIDE (info, c);
+
+    if ((gsize) GST_VIDEO_INFO_PLANE_STRIDE (info, p) != width_in_bytes ||
+        GST_VIDEO_INFO_PLANE_OFFSET (info, p) != expected_offset) {
+      *tightly_packed = FALSE;
+      return TRUE;
+    }
+
+    expected_offset += width_in_bytes * GST_VIDEO_INFO_COMP_HEIGHT (info, c);
+  }
+
+  *tightly_packed = TRUE;
+  return TRUE;
+}

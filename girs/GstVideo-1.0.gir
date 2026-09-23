@@ -12283,6 +12283,31 @@ separate step after unpacking.</doc>
           <type name="gpointer" c:type="gpointer"/>
         </array>
       </field>
+      <method name="check_tightly_packed" c:identifier="gst_video_frame_check_tightly_packed" version="1.30">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.c">Checks the plane strides and offsets of @frame for row padding and gaps
+between planes. A tightly packed frame has, for each plane, a stride that
+is exactly the component width in bytes, and each plane starts right after
+the previous one.
+
+Complex, tiled and paletted formats are unsupported, as their layout can't
+be described by a per-component pixel stride. In that case %FALSE is
+returned and @tightly_packed is left untouched.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.c">%TRUE if the layout could be checked, otherwise %FALSE.</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="frame" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.c">a mapped #GstVideoFrame</doc>
+            <type name="VideoFrame" c:type="const GstVideoFrame*"/>
+          </instance-parameter>
+          <parameter name="tightly_packed" direction="out" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.c">set to whether @frame is tightly packed on success</doc>
+            <type name="gboolean" c:type="gboolean*"/>
+          </parameter>
+        </parameters>
+      </method>
       <method name="copy" c:identifier="gst_video_frame_copy">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-frame.c">Copy the contents from @src to @dest.
 
