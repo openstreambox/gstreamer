@@ -4775,6 +4775,122 @@ GST_START_TEST (test_video_extrapolate_stride)
 
 GST_END_TEST;
 
+GST_START_TEST (test_video_frame_check_tightly_packed)
+{
+  GstVideoInfo info;
+  GstBuffer *buf;
+  GstVideoFrame frame;
+  gboolean packed = FALSE;
+
+  /* RGBA's default stride (width * 4) never has row padding. */
+  fail_unless (gst_video_info_set_format (&info, GST_VIDEO_FORMAT_RGBA, 8, 4));
+  buf = gst_buffer_new_and_alloc (info.size);
+
+  fail_unless (gst_video_frame_map (&frame, &info, buf, GST_MAP_READ));
+  fail_unless (gst_video_frame_check_tightly_packed (&frame, &packed));
+  fail_unless (packed);
+  gst_video_frame_unmap (&frame);
+
+  gst_buffer_unref (buf);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_video_frame_check_tightly_packed_on_row_padded)
+{
+  GstVideoInfo info;
+  GstBuffer *buf;
+  GstVideoFrame frame;
+  gboolean packed = FALSE;
+
+  /* GRAY8's default stride is rounded up to a multiple of 4, so a width
+   * that isn't already a multiple of 4 has row padding. */
+  fail_unless (gst_video_info_set_format (&info, GST_VIDEO_FORMAT_GRAY8, 6, 4));
+  fail_unless_equals_int (info.stride[0], 8);
+  buf = gst_buffer_new_and_alloc (info.size);
+
+  fail_unless (gst_video_frame_map (&frame, &info, buf, GST_MAP_READ));
+  fail_unless (gst_video_frame_check_tightly_packed (&frame, &packed));
+  fail_if (packed);
+  gst_video_frame_unmap (&frame);
+
+  gst_buffer_unref (buf);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_video_frame_check_tightly_packed_on_plane_offset)
+{
+  GstVideoInfo info;
+  GstBuffer *buf;
+  GstVideoFrame frame;
+  gboolean packed = FALSE;
+
+  fail_unless (gst_video_info_set_format (&info, GST_VIDEO_FORMAT_I420, 4, 3));
+  fail_unless_equals_int (info.stride[0], 4);
+  fail_unless_equals_int (info.offset[1], 16);
+  buf = gst_buffer_new_and_alloc (info.size);
+
+  fail_unless (gst_video_frame_map (&frame, &info, buf, GST_MAP_READ));
+  fail_unless (gst_video_frame_check_tightly_packed (&frame, &packed));
+  fail_if (packed);
+  gst_video_frame_unmap (&frame);
+
+  gst_buffer_unref (buf);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_video_frame_check_tightly_packed_on_row_and_plane_padded)
+{
+  GstVideoInfo info;
+  GstBuffer *buf;
+  GstVideoFrame frame;
+  gboolean packed = FALSE;
+
+  fail_unless (gst_video_info_set_format (&info, GST_VIDEO_FORMAT_I420, 5, 3));
+  fail_unless_equals_int (info.stride[0], 8);
+  fail_unless_equals_int (info.offset[1], 32);
+  buf = gst_buffer_new_and_alloc (info.size);
+
+  fail_unless (gst_video_frame_map (&frame, &info, buf, GST_MAP_READ));
+  fail_unless (gst_video_frame_check_tightly_packed (&frame, &packed));
+  fail_if (packed);
+  gst_video_frame_unmap (&frame);
+
+  gst_buffer_unref (buf);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_video_frame_check_tightly_packed_unsupported)
+{
+  static const GstVideoFormat formats[] = {
+    GST_VIDEO_FORMAT_v210,      /* complex */
+    GST_VIDEO_FORMAT_RGB8P,     /* paletted */
+    GST_VIDEO_FORMAT_NV12_4L4,  /* tiled */
+  };
+  guint i;
+
+  for (i = 0; i < G_N_ELEMENTS (formats); i++) {
+    GstVideoInfo info;
+    GstBuffer *buf;
+    GstVideoFrame frame;
+    gboolean packed = TRUE;
+
+    fail_unless (gst_video_info_set_format (&info, formats[i], 48, 16));
+    buf = gst_buffer_new_and_alloc (info.size);
+
+    fail_unless (gst_video_frame_map (&frame, &info, buf, GST_MAP_READ));
+    fail_if (gst_video_frame_check_tightly_packed (&frame, &packed));
+    gst_video_frame_unmap (&frame);
+
+    gst_buffer_unref (buf);
+  }
+}
+
+GST_END_TEST;
+
 GST_START_TEST (test_auto_video_frame_unmap)
 {
 #ifdef g_auto
@@ -6050,6 +6166,14 @@ video_suite (void)
   tcase_add_test (tc_chain, test_video_flags);
   tcase_add_test (tc_chain, test_video_make_raw_caps);
   tcase_add_test (tc_chain, test_video_extrapolate_stride);
+  tcase_add_test (tc_chain, test_video_frame_check_tightly_packed);
+  tcase_add_test (tc_chain,
+      test_video_frame_check_tightly_packed_on_row_padded);
+  tcase_add_test (tc_chain,
+      test_video_frame_check_tightly_packed_on_plane_offset);
+  tcase_add_test (tc_chain, test_video_frame_check_tightly_packed_unsupported);
+  tcase_add_test (tc_chain,
+      test_video_frame_check_tightly_packed_on_row_and_plane_padded);
   tcase_add_test (tc_chain, test_auto_video_frame_unmap);
   tcase_add_test (tc_chain, test_video_color_primaries_equivalent);
   tcase_add_test (tc_chain, test_info_dma_drm);
