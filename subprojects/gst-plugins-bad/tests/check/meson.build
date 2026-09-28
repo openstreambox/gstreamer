@@ -129,9 +129,11 @@ base_tests = [
   [['libs/vp9bitwriter.c'], false, [gstcodecparsers_dep]],
   [['libs/jpegbitwriter.c'], false, [gstcodecparsers_dep]],
   [['libs/vkmemory.c'], not gstvulkan_dep.found(), [gstvulkan_dep]],
-  [['libs/analyticsmeta.c'], false, [gstanalytics_dep]],
+  [['libs/analyticsmeta.c'], false, [gstanalytics_dep], [ ], true, ['analytics-lib']],
   [['libs/analytics_tensorlistmeta.c'], false, [gstanalytics_dep]],
   [['libs/analytics_modelinfo.c'], false, [gstanalytics_dep]],
+  [['libs/analyticsvideoutils.c'], false, [gstanalytics_dep], [ ], true, ['analytics-lib']],
+  [['libs/analyticsinferenceutils.c'], false, [gstanalytics_dep], [ ], true, ['analytics-lib']],
   [['libs/vkwindow.c'], not gstvulkan_dep.found(), [gstvulkan_dep]],
   [['libs/vkdevice.c'], not gstvulkan_dep.found(), [gstvulkan_dep]],
   [['libs/vkcommandpool.c'], not gstvulkan_dep.found(), [gstvulkan_dep]],
@@ -310,6 +312,7 @@ foreach t : base_tests
 
   extra_sources = t.get(3, [ ])
   is_parallel = t.get(4, true)
+  extra_suites = t.get(5, [ ])
 
   if not skip_test
     exe = executable(test_name, fnames, extra_sources,
@@ -329,7 +332,8 @@ foreach t : base_tests
       'gst-plugins-good', 'gst-plugins-ugly','gst-libav', 'libnice',
       'gst-plugins-bad@' + meson.project_build_root())
     env.set('GST_PLUGIN_SCANNER_1_0', gst_plugin_scanner_path)
-    test(test_name, exe, env: env, timeout: 3 * 60, is_parallel: is_parallel)
+    test(test_name, exe, env: env, timeout: 3 * 60, is_parallel: is_parallel,
+      suite: extra_suites)
   endif
 endforeach
 
